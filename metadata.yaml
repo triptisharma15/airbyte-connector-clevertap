@@ -1,0 +1,17 @@
+data:
+  connectorSubtype: api
+  connectorType: source
+  definitionId: f98d8091-78c5-44bd-8a0a-41045a48c10d
+  dockerImageTag: 0.1.0
+  dockerRepository: airbyte/source-clevertap
+  githubIssueLabel: source-clevertap
+  icon: clevertap.svg
+  license: MIT
+  name: CleverTap
+  releaseDate: 2026-02-19
+  releaseStage: alpha
+  supportLevel: community
+  documentationUrl: https://developer.clevertap.com/docs/profiles-api
+  tags:
+    - language:python
+    - cdk:python

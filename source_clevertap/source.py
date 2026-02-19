@@ -1,0 +1,65 @@
+#
+# Copyright (c) 2026 Tripti Sharma
+# Licensed under the MIT License
+#
+from typing import Any, List, Mapping, Tuple
+import logging
+from airbyte_cdk.sources import AbstractSource
+from airbyte_cdk.sources.streams import Stream
+from .streams import ProfilesStream, EventsStream  
+
+
+class SourceClevertap(AbstractSource):
+    """
+    Source implementation for CleverTap Profiles API
+    """
+
+    def check_connection(self, logger: logging.Logger, config: Mapping[str, Any]) -> Tuple[bool, Any]:
+        """
+        Test connection to CleverTap API by making a POST request to get a cursor.
+        
+        :param logger: Airbyte logger
+        :param config: Configuration from config.json
+        :return: (True, None) on success, (False, error_message) on failure
+        """
+        try:
+            # Validate required config fields
+            required_fields = ["account_id", "passcode", "start_date", "end_date"]
+            for field in required_fields:
+                if field not in config:
+                    return False, f"Missing required config field: {field}"
+            
+            # Validate date format
+            start_date = config["start_date"]
+            end_date = config["end_date"]
+            
+            if not isinstance(start_date, int) or not isinstance(end_date, int):
+                return False, "start_date and end_date must be integers in YYYYMMDD format"
+            
+            if start_date > end_date:
+                return False, "start_date must be less than or equal to end_date"
+            
+            # Test with ProfilesStream (could test either stream)
+            stream = ProfilesStream(config)
+            cursor = stream._get_initial_cursor()
+            
+            if not cursor:
+                return False, "Failed to get cursor from CleverTap API"
+            
+            logger.info(f"Successfully connected to CleverTap API and obtained cursor")
+            return True, None
+            
+        except Exception as e:
+            return False, f"Connection check failed: {str(e)}"
+
+    def streams(self, config: Mapping[str, Any]) -> List[Stream]:
+        """
+        Return list of streams for this source
+        
+        :param config: Configuration from config.json
+        :return: List of streams
+        """
+        return [
+            ProfilesStream(config),
+            EventsStream(config)  
+        ]

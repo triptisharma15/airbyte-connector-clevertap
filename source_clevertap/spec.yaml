@@ -1,0 +1,56 @@
+documentationUrl: https://developer.clevertap.com/docs/profiles-api
+connectionSpecification:
+  $schema: http://json-schema.org/draft-07/schema#
+  title: CleverTap API Spec
+  type: object
+  required:
+    - account_id
+    - passcode
+    - start_date
+    - end_date
+  additionalProperties: true
+  properties:
+    account_id:
+      type: string
+      title: Account ID
+      description: Your CleverTap Account ID
+      order: 0
+    passcode:
+      type: string
+      title: Passcode
+      description: Your CleverTap API Passcode
+      airbyte_secret: true
+      order: 1
+    region:
+      type: string
+      title: Region
+      description: CleverTap API region (in1, us1, sg1, sk1, eu1). Leave empty for default API endpoint.
+      default: ""
+      examples:
+        - in1
+        - us1
+        - sg1
+        - sk1
+        - eu1
+      order: 2
+    event_name:
+      type: string
+      title: Event Name (Optional)
+      description: Filter by specific event name (e.g., "App Launched"). Leave empty to fetch all events.
+      examples:
+        - App Launched
+      order: 3
+    start_date:
+      type: integer
+      title: Start Date
+      description: Start date in YYYYMMDD format (e.g., 20220101)
+      examples:
+        - 20220101
+      order: 4
+    end_date:
+      type: integer
+      title: End Date
+      description: End date in YYYYMMDD format (e.g., 20260212)
+      examples:
+        - 20260212
+      order: 5

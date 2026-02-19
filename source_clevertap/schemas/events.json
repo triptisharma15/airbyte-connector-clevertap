@@ -1,0 +1,33 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": true,
+    "properties": {
+      "event_name": {
+        "type": ["null", "string"],
+        "description": "Name of the event"
+      },
+      "ts": {
+        "type": ["null", "integer"],
+        "description": "Timestamp of the event"
+      },
+      "identity": {
+        "type": ["null", "string"],
+        "description": "User identity/ID"
+      },
+      "type": {
+        "type": ["null", "string"],
+        "description": "Event type"
+      },
+      "event_props": {
+        "type": ["null", "object"],
+        "description": "Event properties",
+        "additionalProperties": true
+      },
+      "profile_props": {
+        "type": ["null", "object"],
+        "description": "User profile properties at time of event",
+        "additionalProperties": true
+      }
+    }
+  }
