@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2026 Tripti Sharma
+# Copyright (c) 2026 [Your Name]
 # Licensed under the MIT License
 #
 from typing import Any, Iterable, Mapping, Optional
@@ -18,11 +18,12 @@ class ProfilesStream(Stream):
     def __init__(self, config: Mapping[str, Any], **kwargs):
         super().__init__(**kwargs)
         self.config = config
+        from datetime import datetime
         self.account_id = config["account_id"]
         self.passcode = config["passcode"]
         self.event_name = config["event_name"]
         self.start_date = config["start_date"]
-        self.end_date = config["end_date"]
+        self.end_date = config.get("end_date") or int(datetime.now().strftime("%Y%m%d"))
         self.region = config.get("region", "")
         
         # Build base URL based on region
@@ -62,13 +63,19 @@ class ProfilesStream(Stream):
         url = f"{self.base_url}/1/profiles.json"
         headers = self.request_headers()
         
+        query_params = {
+            "batch_size": 4991,
+            "app": "true",
+            "profile": "true",
+        }
+        
         payload = {
             "event_name": self.event_name,
             "from": self.start_date,
             "to": self.end_date
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, params=query_params)
         response.raise_for_status()
         
         data = response.json()
@@ -118,12 +125,10 @@ class ProfilesStream(Stream):
             retry_delay = 5  # seconds
             
             for attempt in range(max_retries):
-                # Make POST request with cursor
                 url = f"{self.base_url}/1/profiles.json"
                 headers = self.request_headers()
-                payload = {"cursor": self._current_cursor}
-                
-                response = requests.post(url, json=payload, headers=headers)
+                full_url = f"{url}?cursor={self._current_cursor}"
+                response = requests.get(full_url, headers=headers)
                 response.raise_for_status()
                 
                 data = response.json()
@@ -137,29 +142,23 @@ class ProfilesStream(Stream):
                     else:
                         raise Exception(f"Max retries reached. API still not ready: {data}")
                 
-                # Check for other errors
                 if data.get("status") != "success":
                     raise Exception(f"API returned error status: {data}")
                 
-                # Success! Break out of retry loop
                 break
             
-            # Extract records
             records = data.get("records", [])
             self.logger.info(f"Page {page_count}: Received {len(records)} records")
             
-            # Yield each record
             for record in records:
                 total_records += 1
                 yield record
             
-            # Check for next cursor
-            next_cursor = data.get("cursor")
+            next_cursor = data.get("next_cursor")
             
             if next_cursor:
                 self._current_cursor = next_cursor
             else:
-                # No more pages
                 self.logger.info(f"No more pages. Total records fetched: {total_records}")
                 self._current_cursor = None
                 break
@@ -193,11 +192,12 @@ class EventsStream(Stream):
     def __init__(self, config: Mapping[str, Any], **kwargs):
         super().__init__(**kwargs)
         self.config = config
+        from datetime import datetime
         self.account_id = config["account_id"]
         self.passcode = config["passcode"]
-        self.event_name = config.get("event_name")  # Optional for events
+        self.event_name = config.get("event_name")
         self.start_date = config["start_date"]
-        self.end_date = config["end_date"]
+        self.end_date = config.get("end_date") or int(datetime.now().strftime("%Y%m%d"))
         self.region = config.get("region", "")
         
         # Build base URL based on region
@@ -233,19 +233,20 @@ class EventsStream(Stream):
         """
         STEP 1: Make POST request to get initial cursor for events
         """
-        url = f"{self.base_url}/1/events.json"  # Note: events endpoint
+        url = f"{self.base_url}/1/events.json"
         headers = self.request_headers()
+        
+        query_params = {"batch_size": 4991}
         
         payload = {
             "from": self.start_date,
             "to": self.end_date
         }
         
-        # Add event_name filter if specified
         if self.event_name:
             payload["event_name"] = self.event_name
         
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, params=query_params)
         response.raise_for_status()
         
         data = response.json()
@@ -292,17 +293,14 @@ class EventsStream(Stream):
             retry_delay = 5  # seconds
             
             for attempt in range(max_retries):
-                # Make POST request with cursor
-                url = f"{self.base_url}/1/events.json"  # Note: events endpoint
+                url = f"{self.base_url}/1/events.json"
                 headers = self.request_headers()
-                payload = {"cursor": self._current_cursor}
-                
-                response = requests.post(url, json=payload, headers=headers)
+                full_url = f"{url}?cursor={self._current_cursor}"
+                response = requests.get(full_url, headers=headers)
                 response.raise_for_status()
                 
                 data = response.json()
                 
-                # Check if request is still in progress (code 2)
                 if data.get("status") == "fail" and data.get("code") == 2:
                     if attempt < max_retries - 1:
                         self.logger.info(f"Request still in progress. Waiting {retry_delay} seconds before retry {attempt + 1}/{max_retries}...")
@@ -311,24 +309,19 @@ class EventsStream(Stream):
                     else:
                         raise Exception(f"Max retries reached. API still not ready: {data}")
                 
-                # Check for other errors
                 if data.get("status") != "success":
                     raise Exception(f"API returned error status: {data}")
                 
-                # Success! Break out of retry loop
                 break
             
-            # Extract records
             records = data.get("records", [])
             self.logger.info(f"Page {page_count}: Received {len(records)} records")
             
-            # Yield each record
             for record in records:
                 total_records += 1
                 yield record
             
-            # Check for next cursor
-            next_cursor = data.get("cursor")
+            next_cursor = data.get("next_cursor")
             
             if next_cursor:
                 self._current_cursor = next_cursor

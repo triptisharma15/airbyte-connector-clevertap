@@ -23,20 +23,20 @@ class SourceClevertap(AbstractSource):
         :return: (True, None) on success, (False, error_message) on failure
         """
         try:
-            # Validate required config fields
-            required_fields = ["account_id", "passcode", "start_date", "end_date"]
+            from datetime import datetime
+            
+            required_fields = ["account_id", "passcode", "start_date"]
             for field in required_fields:
                 if field not in config:
                     return False, f"Missing required config field: {field}"
             
-            # Validate date format
             start_date = config["start_date"]
-            end_date = config["end_date"]
+            end_date = config.get("end_date") or int(datetime.now().strftime("%Y%m%d"))
             
-            if not isinstance(start_date, int) or not isinstance(end_date, int):
-                return False, "start_date and end_date must be integers in YYYYMMDD format"
+            if not isinstance(start_date, int):
+                return False, "start_date must be an integer in YYYYMMDD format"
             
-            if start_date > end_date:
+            if isinstance(end_date, int) and start_date > end_date:
                 return False, "start_date must be less than or equal to end_date"
             
             # Test with ProfilesStream (could test either stream)

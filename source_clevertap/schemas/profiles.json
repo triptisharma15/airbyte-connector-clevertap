@@ -5,20 +5,47 @@
   "properties": {
     "identity": {
       "type": ["null", "string"],
-      "description": "User identity/ID"
-    },
-    "email": {
-      "type": ["null", "string"],
-      "description": "User email"
-    },
-    "phone": {
-      "type": ["null", "string"],
-      "description": "User phone number"
+      "description": "Custom user identity"
     },
     "name": {
       "type": ["null", "string"],
-      "description": "User name"
+      "description": "User's name"
+    },
+    "email": {
+      "type": ["null", "string"],
+      "description": "User's email address"
+    },
+    "phone": {
+      "type": ["null", "string"],
+      "description": "User's phone number"
+    },
+    "profileData": {
+      "type": ["null", "object"],
+      "description": "Custom user profile properties",
+      "additionalProperties": true
+    },
+    "events": {
+      "type": ["null", "object"],
+      "description": "User event summaries with counts and timestamps",
+      "additionalProperties": true
+    },
+    "platformInfo": {
+      "type": ["null", "array"],
+      "description": "User device and platform information",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "objectId": { "type": ["null", "string"] },
+          "platform": { "type": ["null", "string"] },
+          "os_version": { "type": ["null", "string"] },
+          "app_version": { "type": ["null", "string"] },
+          "make": { "type": ["null", "string"] },
+          "model": { "type": ["null", "string"] },
+          "push_token": { "type": ["null", "string"] },
+          "phone": { "type": ["null", "string"] }
+        }
+      }
     }
   }
 }
-
