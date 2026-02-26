@@ -319,6 +319,15 @@ class EventsStream(Stream):
             
             for record in records:
                 total_records += 1
+                # Flatten nested profile fields to top level for easy joining
+                profile = record.pop("profile", {}) or {}
+                record["identity"] = profile.get("identity")
+                record["name"] = profile.get("name")
+                record["email"] = profile.get("email")
+                record["phone"] = profile.get("phone")
+                record["object_id"] = profile.get("objectId")
+                record["all_identities"] = profile.get("all_identities")
+                record["profile_data"] = profile.get("profileData")
                 yield record
             
             next_cursor = data.get("next_cursor")

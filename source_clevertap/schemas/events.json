@@ -13,7 +13,33 @@
       },
       "identity": {
         "type": ["null", "string"],
-        "description": "User identity/ID"
+        "description": "User identity/ID (extracted from nested profile)"
+      },
+      "name": {
+        "type": ["null", "string"],
+        "description": "User's name (extracted from nested profile)"
+      },
+      "email": {
+        "type": ["null", "string"],
+        "description": "User's email (extracted from nested profile)"
+      },
+      "phone": {
+        "type": ["null", "integer"],
+        "description": "User's phone number (extracted from nested profile)"
+      },
+      "object_id": {
+        "type": ["null", "string"],
+        "description": "Device-level objectId (extracted from nested profile)"
+      },
+      "all_identities": {
+        "type": ["null", "array"],
+        "description": "All identities for the user",
+        "items": { "type": "string" }
+      },
+      "profile_data": {
+        "type": ["null", "object"],
+        "description": "Custom user profile properties at time of event",
+        "additionalProperties": true
       },
       "type": {
         "type": ["null", "string"],
@@ -22,6 +48,11 @@
       "event_props": {
         "type": ["null", "object"],
         "description": "Event properties",
+        "additionalProperties": true
+      },
+      "session_props": {
+        "type": ["null", "object"],
+        "description": "Session properties",
         "additionalProperties": true
       },
       "profile_props": {
