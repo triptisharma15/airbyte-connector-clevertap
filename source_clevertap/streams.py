@@ -187,8 +187,6 @@ class EventsStream(Stream):
     Stream implementation for CleverTap Events API with 2-step cursor pagination
     """
     
-    primary_key = None
-    
     def __init__(self, config: Mapping[str, Any], **kwargs):
         super().__init__(**kwargs)
         self.config = config
@@ -210,11 +208,25 @@ class EventsStream(Stream):
         self._initial_cursor = None
         self._current_cursor = None
         self._logger = logging.getLogger(f"airbyte.{self.name}")
+        self._state = {}
+        
+    @property
+    def cursor_field(self) -> str:
+        return "ts" 
+    
+    @property
+    def supported_sync_modes(self):
+        from airbyte_cdk.models import SyncMode
+        return [SyncMode.full_refresh, SyncMode.incremental]
+
+    @property
+    def source_defined_cursor(self) -> bool:
+        return True
 
     @property
     def primary_key(self):
         return [["identity"], ["session_id"], ["ts"]]
-        
+
     @property
     def name(self) -> str:
         """Stream name"""
@@ -276,7 +288,11 @@ class EventsStream(Stream):
         """
         import time
         
-        # Step 1: Get initial cursor if we haven't already
+        if stream_state and stream_state.get("ts"):
+            last_ts = stream_state["ts"]
+            self.start_date = int(str(last_ts)[:8])
+            self.logger.info(f"Incremental sync: adjusting start_date to {self.start_date} based on state ts={last_ts}")
+        
         if not self._initial_cursor:
             self.logger.info("Fetching initial cursor from CleverTap Events API...")
             self._initial_cursor = self._get_initial_cursor()
@@ -284,7 +300,6 @@ class EventsStream(Stream):
             if self._current_cursor:
                 self.logger.info(f"Obtained initial cursor: {self._current_cursor[:50]}...")
         
-        # Step 2: Loop through POST requests with cursor until exhausted
         page_count = 0
         total_records = 0
         
@@ -322,7 +337,6 @@ class EventsStream(Stream):
             self.logger.info(f"Page {page_count}: Received {len(records)} records")
             
             for record in records:
-                total_records += 1
                 # Flatten nested profile fields to top level for easy joining
                 record["session_id"] = (record.get("event_props") or {}).get("CT Session Id")
                 profile = record.pop("profile", {}) or {}
@@ -333,6 +347,9 @@ class EventsStream(Stream):
                 record["object_id"] = profile.get("objectId")
                 record["all_identities"] = profile.get("all_identities")
                 record["profile_data"] = profile.get("profileData")
+                if stream_state and stream_state.get("ts") and record.get("ts", 0) <= stream_state["ts"]:
+                    continue
+                total_records += 1
                 yield record
             
             next_cursor = data.get("next_cursor")
@@ -363,3 +380,9 @@ class EventsStream(Stream):
         
         with open(schema_path, "r") as f:
             return json.load(f)
+    
+
+    def get_updated_state(self, current_stream_state, latest_record):
+        latest_ts = latest_record.get("ts", 0)
+        current_ts = (current_stream_state or {}).get("ts", 0)
+        return {"ts": max(latest_ts, current_ts)}

@@ -1,6 +1,5 @@
 {
   "streams": [
-  
     {
       "stream": {
         "name": "events",
@@ -9,10 +8,14 @@
           "type": "object",
           "additionalProperties": true
         },
-        "supported_sync_modes": ["full_refresh"]
+        "supported_sync_modes": ["full_refresh", "incremental"],
+        "source_defined_cursor": true,
+        "default_cursor_field": ["ts"]
       },
-      "sync_mode": "full_refresh",
-      "destination_sync_mode": "overwrite"
+      "sync_mode": "incremental",
+      "cursor_field": ["ts"],
+      "destination_sync_mode": "append_dedup",
+      "primary_key": [["identity"], ["session_id"], ["ts"]]
     }
   ]
 }

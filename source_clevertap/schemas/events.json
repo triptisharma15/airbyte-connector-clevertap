@@ -8,7 +8,7 @@
         "description": "Name of the event"
       },
       "session_id": {
-        "type": ["null", "string"],
+        "type": ["null", "integer"],
         "description": "CleverTap session ID"
       },
       "ts": {
