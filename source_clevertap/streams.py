@@ -210,7 +210,11 @@ class EventsStream(Stream):
         self._initial_cursor = None
         self._current_cursor = None
         self._logger = logging.getLogger(f"airbyte.{self.name}")
-    
+
+    @property
+    def primary_key(self):
+        return [["identity"], ["session_id"], ["ts"]]
+        
     @property
     def name(self) -> str:
         """Stream name"""
@@ -320,6 +324,7 @@ class EventsStream(Stream):
             for record in records:
                 total_records += 1
                 # Flatten nested profile fields to top level for easy joining
+                record["session_id"] = (record.get("event_props") or {}).get("CT Session Id")
                 profile = record.pop("profile", {}) or {}
                 record["identity"] = profile.get("identity")
                 record["name"] = profile.get("name")

@@ -7,6 +7,10 @@
         "type": ["null", "string"],
         "description": "Name of the event"
       },
+      "session_id": {
+        "type": ["null", "string"],
+        "description": "CleverTap session ID"
+      },
       "ts": {
         "type": ["null", "integer"],
         "description": "Timestamp of the event"

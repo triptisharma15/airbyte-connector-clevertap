@@ -6,8 +6,8 @@ from typing import Any, List, Mapping, Tuple
 import logging
 from airbyte_cdk.sources import AbstractSource
 from airbyte_cdk.sources.streams import Stream
-from .streams import ProfilesStream, EventsStream  
-
+#from .streams import ProfilesStream, EventsStream  
+from .streams import EventsStream  
 
 class SourceClevertap(AbstractSource):
     """
@@ -39,8 +39,8 @@ class SourceClevertap(AbstractSource):
             if isinstance(end_date, int) and start_date > end_date:
                 return False, "start_date must be less than or equal to end_date"
             
-            # Test with ProfilesStream (could test either stream)
-            stream = ProfilesStream(config)
+            
+            stream = EventsStream(config)
             cursor = stream._get_initial_cursor()
             
             if not cursor:
@@ -60,6 +60,6 @@ class SourceClevertap(AbstractSource):
         :return: List of streams
         """
         return [
-            ProfilesStream(config),
+            #ProfilesStream(config),
             EventsStream(config)  
         ]
